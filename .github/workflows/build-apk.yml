@@ -11,13 +11,13 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - name: Licencias de Android
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
       - name: Buscar el proyecto
         run: |
-          ls -R | head -50
           F=$(find . -name settings.gradle -not -path "./.git/*" | head -1)
           if [ -z "$F" ]; then echo "No encontré settings.gradle: faltan archivos del proyecto"; exit 1; fi
           echo "DIR=$(dirname "$F")" >> $GITHUB_ENV

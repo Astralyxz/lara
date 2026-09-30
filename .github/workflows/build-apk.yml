@@ -6,8 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -15,8 +15,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - run: gradle assembleDebug
-      - run: cp app/build/outputs/apk/debug/app-debug.apk JardinDeLara.apk
+      - name: Buscar el proyecto
+        run: |
+          ls -R | head -50
+          F=$(find . -name settings.gradle -not -path "./.git/*" | head -1)
+          if [ -z "$F" ]; then echo "No encontré settings.gradle: faltan archivos del proyecto"; exit 1; fi
+          echo "DIR=$(dirname "$F")" >> $GITHUB_ENV
+      - name: Compilar
+        run: cd "$DIR" && gradle assembleDebug
+      - run: cp "$DIR/app/build/outputs/apk/debug/app-debug.apk" JardinDeLara.apk
       - uses: actions/upload-artifact@v4
         with:
           name: JardinDeLara-apk

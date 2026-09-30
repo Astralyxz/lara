@@ -1,0 +1,501 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Jardín de Lara</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: app de una columna con barra inferior (Hoy · Jardín · Semana) y un temporizador a pantalla completa */
+:root{
+  --bg:#fdf0f5; --surface:#ffffff; --fg:#3a1f2d; --muted:#8e6878; --line:#f4d6e3;
+  --leaf:#4f9a5c; --soil:#e3a9bf; --soil-soft:#fbe3ec;
+  --bioq:#e23b52; --fisio:#c93d9a; --anato:#f0a81a; --wilt:#b9a8ae;
+  --btn:#d9468a; --btn-fg:#ffffff;
+  --f-display:"Fraunces", Georgia, serif;
+  --f-body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1c1118; --surface:#281922; --fg:#f7e6ee; --muted:#c29cad; --line:#442a3a;
+  --leaf:#6cc07b; --soil:#8f5670; --soil-soft:#34202b;
+  --bioq:#ff6275; --fisio:#f07ad0; --anato:#ffc23d; --wilt:#6f5f66;
+  --btn:#ff8fc0; --btn-fg:#2a1020; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1c1118; --surface:#281922; --fg:#f7e6ee; --muted:#c29cad; --line:#442a3a;
+  --leaf:#6cc07b; --soil:#8f5670; --soil-soft:#34202b;
+  --bioq:#ff6275; --fisio:#f07ad0; --anato:#ffc23d; --wilt:#6f5f66;
+  --btn:#ff8fc0; --btn-fg:#2a1020; color-scheme:dark }
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--leaf);outline-offset:2px}
+.k-bioq{--c:var(--bioq)} .k-fisio{--c:var(--fisio)} .k-anato{--c:var(--anato)}
+
+main{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:18px calc(96px + env(safe-area-inset-bottom,0px));display:grid;gap:18px}
+.view{display:grid;gap:18px}
+h1{font-family:var(--f-display);font-weight:700;font-size:2rem;line-height:1.05;margin:0;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-weight:500;font-size:1.2rem;margin:0}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
+
+/* tulipán */
+.tul{display:block;overflow:visible}
+.tul .stem path{stroke:var(--leaf)}
+.tul .leaves path{fill:var(--leaf)}
+.tul .cup{fill:var(--c,var(--leaf))}
+.tul .hi{fill:#fff;fill-opacity:.22}
+.tul.wilted .cup{fill:var(--wilt)}
+.tul.wilted .stem path{stroke:var(--wilt)}
+.tul.wilted .leaves path{fill:var(--wilt)}
+.tul.wilted .bloom{transform:rotate(58deg) translate(4px,6px);transform-origin:20px 36px}
+.tul.bulb .cup{fill:none;stroke:var(--line);stroke-width:1.6;stroke-dasharray:3 3}
+.tul.bulb .hi,.tul.bulb .leaves{display:none}
+.tul.bulb .stem path{stroke:var(--line);stroke-dasharray:3 3}
+
+/* hoy */
+.hello{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.hello .count{text-align:right}
+.hello .count b{font-family:var(--f-display);font-size:2rem;line-height:1;display:block}
+.now{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.now .tul{width:64px;height:128px}
+.now .when{font-size:.8rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.now .what{font-family:var(--f-display);font-size:1.45rem;line-height:1.15;margin:2px 0 10px;color:var(--c,var(--fg))}
+.plant{display:inline-flex;align-items:center;gap:8px;background:var(--btn);color:var(--btn-fg);border:0;border-radius:999px;padding:12px 20px;font-weight:700}
+.plant:disabled{opacity:.4;cursor:default}
+.today{display:grid;gap:8px;list-style:none;margin:0;padding:0}
+.today li{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px 14px 8px 10px}
+.today .tul{width:26px;height:52px}
+.today .t{font-size:.8rem;color:var(--muted)}
+.today .n{font-weight:600;color:var(--c)}
+.mini{border:1px solid var(--line);background:transparent;border-radius:999px;padding:7px 14px;font-weight:600;font-size:.85rem}
+.state{font-size:.8rem;font-weight:600;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:600;font-size:.88rem}
+.chip[aria-pressed="true"]{background:var(--c,var(--btn));border-color:var(--c,var(--btn));color:#1b1b1b}
+.chip.min[aria-pressed="true"]{color:var(--btn-fg)}
+.free{display:grid;gap:12px}
+
+/* jardín */
+.field{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 14px 0;overflow:hidden}
+.bed{display:flex;flex-wrap:wrap;align-items:flex-end;gap:2px 4px;min-height:120px;padding-bottom:0}
+.bed .tul{width:26px}
+.ground{height:18px;margin:0 -14px;background:var(--soil-soft);border-top:3px solid var(--soil)}
+.empty{display:grid;justify-items:center;gap:6px;padding:26px 0 18px;text-align:center;width:100%}
+.empty .tul{width:40px;height:80px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px}
+.stat b{font-family:var(--f-display);font-size:1.6rem;line-height:1;display:block}
+.stat span{font-size:.78rem;color:var(--muted)}
+.meter{height:10px;border-radius:5px;background:var(--line);overflow:hidden;display:flex}
+.meter i{display:block;height:100%}
+.subj{display:grid;gap:10px}
+.subj .row{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center}
+.subj .tul{width:16px;height:32px}
+.hist{display:grid;gap:6px;font-size:.88rem}
+.hist div{display:flex;justify-content:space-between;border-bottom:1px solid var(--line);padding-block:6px}
+
+/* semana */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.days button{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 0;font-weight:700}
+.days button[aria-selected="true"]{background:var(--btn);color:var(--btn-fg);border-color:var(--btn)}
+.sched{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.sched li{display:grid;grid-template-columns:96px 1fr auto;gap:10px;align-items:center;padding:9px 12px;border-radius:12px}
+.sched .t{font-size:.78rem;color:var(--muted)}
+.sched .study{background:var(--surface);border:1px solid var(--line)}
+.sched .study .n{font-weight:700;color:var(--c)}
+.sched .clase .n{font-weight:600}
+.sched .traslado,.sched .sueno,.sched .rutina{color:var(--muted)}
+.sched .traslado .n{font-style:italic}
+.sched .tag{font-size:.72rem;color:var(--muted);display:block;font-weight:500;font-style:normal}
+.sched .m{font-size:.8rem;color:var(--muted)}
+.weektot{display:flex;flex-wrap:wrap;gap:14px;font-size:.85rem}
+.weektot span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}
+
+/* barra inferior */
+nav.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center;gap:6px;z-index:5}
+nav.bar button{flex:1;max-width:170px;border:0;background:transparent;border-radius:14px;padding:9px 0;font-weight:700;color:var(--muted);display:grid;justify-items:center;gap:2px;font-size:.82rem}
+nav.bar button svg{width:22px;height:22px}
+nav.bar button[aria-current="true"]{color:var(--fg);background:var(--bg)}
+
+/* temporizador */
+#timer{position:fixed;inset:0;z-index:10;background:var(--bg);display:grid;place-items:center;padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.tbox{display:grid;justify-items:center;gap:10px;text-align:center;width:100%;max-width:420px}
+.tsubj{font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.8rem;color:var(--c)}
+.big{width:min(46vw,190px);height:auto;aspect-ratio:1/2;max-width:100%}
+.big .stem{transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(var(--g,0))}
+.big .leaves{transform-box:fill-box;transform-origin:50% 100%;transform:scale(var(--l,0))}
+.big .bloom{transform-box:fill-box;transform-origin:50% 100%;transform:translateY(calc((1 - var(--g,0)) * 45px)) scale(var(--b,0))}
+.big .cup{fill:var(--leaf)}
+.big .open{fill:var(--c);opacity:var(--o,0)}
+.big.wilted .open{fill:var(--wilt);opacity:1}
+.big.wilted .bloom{transform:rotate(58deg);transform-origin:50% 100%}
+.clock{font-family:var(--f-display);font-size:3.6rem;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.rule{font-size:.82rem;color:var(--muted)}
+.giveup{border:1px solid var(--line);background:transparent;border-radius:999px;padding:9px 18px;font-weight:600;color:var(--muted)}
+.giveup.arm{border-color:var(--bioq);color:var(--bioq)}
+.cheer{font-family:var(--f-display);font-size:1.7rem;line-height:1.15}
+.burst{position:absolute;pointer-events:none}
+@media (prefers-reduced-motion:no-preference){
+  .pop{animation:pop .7s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .petal{animation:fly 1.4s ease-out forwards}
+  @keyframes fly{to{transform:translate(var(--x),var(--y)) rotate(260deg);opacity:0}}
+  .big .stem,.big .leaves,.big .bloom,.big .open{transition:transform .6s ease, opacity .6s ease}
+}
+.love{text-align:center;color:var(--muted);font-size:.85rem;padding-block:10px 0;display:flex;justify-content:center;align-items:center;gap:6px}
+.love svg{width:14px;height:14px;fill:var(--btn)}
+@media (max-width:380px){ .sched li{grid-template-columns:84px 1fr auto} h1{font-size:1.7rem} }
+</style>
+
+<main>
+  <section class="view" id="v-hoy"></section>
+  <section class="view" id="v-jardin" hidden></section>
+  <section class="view" id="v-semana" hidden></section>
+  <footer class="love"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.2 0 3.6 1.2 4.3 2.4.7-1.2 2.1-2.4 4.3-2.4 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>Hecho con mucho amor por Martín</footer>
+</main>
+
+<nav class="bar" aria-label="Secciones">
+  <button id="nav-hoy" data-v="hoy" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Hoy</button>
+  <button id="nav-jardin" data-v="jardin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4l2.5 3L12 3l2.5 4L17 4c.5 5-1.5 8-5 8s-5.5-3-5-8zM12 12v9M12 18c-2-1-4-3-4-5M12 16c2-.5 3.5-2 4-4"/></svg>Jardín</button>
+  <button id="nav-semana" data-v="semana"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Semana</button>
+</nav>
+
+<div id="timer" hidden></div>
+
+<script>
+/* ---------- plan semanal ---------- */
+// [hora, tipo, nombre, minutos de estudio, etiqueta]
+const PLAN=[
+ {s:"L",name:"Lunes",b:[
+  ["06:45","rutina","Despertar"],
+  ["07:30–08:45","anato","Anatomía",75,"sin Lab. Fisio"],
+  ["08:00–09:30","clase","Lab. Fisiología","", "rotativo"],
+  ["09:10–09:40","traslado","Traslado"],
+  ["09:40–11:10","clase","Anatomía"],
+  ["11:10–11:40","traslado","Al depa"],
+  ["11:45–12:45","bioq","Bioquímica",60],
+  ["12:50–14:00","comida","Almuerzo"],
+  ["14:00–15:30","fisio","Fisiología",90],
+  ["15:40–16:40","bioq","Bioquímica",60],
+  ["16:50–17:20","traslado","A la U"],
+  ["17:20–18:50","clase","Fisiología"],
+  ["18:50–19:20","traslado","Al depa"],
+  ["19:30–20:15","comida","Once / cena"],
+  ["20:30–21:30","fisio","Fisiología",60],
+  ["23:00","sueno","Dormir"]]},
+ {s:"M",name:"Martes",b:[
+  ["07:00","rutina","Despertar"],
+  ["07:45–08:45","anato","Anatomía",60],
+  ["09:10–09:40","traslado","A la U"],
+  ["09:40–12:50","clase","Bioquímica ×2"],
+  ["12:50–14:00","comida","Almuerzo"],
+  ["14:00–15:00","bioq","Bioquímica",60,"en la U"],
+  ["15:00–15:30","anato","Anatomía",30,"en la U"],
+  ["15:40–17:10","clase","Lab. Anatomía"],
+  ["17:10–17:40","traslado","Al depa"],
+  ["17:40–18:15","libre","Descanso"],
+  ["18:15–19:45","bioq","Bioquímica",90],
+  ["19:45–20:30","comida","Once / cena"],
+  ["20:45–21:45","fisio","Fisiología",60],
+  ["23:00","sueno","Dormir"]]},
+ {s:"X",name:"Miércoles",b:[
+  ["07:00","rutina","Despertar"],
+  ["07:45–08:45","fisio","Fisiología",60],
+  ["09:10–09:40","traslado","A la U"],
+  ["09:40–11:10","clase","Anatomía"],
+  ["11:10–11:40","traslado","Al depa"],
+  ["11:45–12:45","bioq","Bioquímica",60],
+  ["12:45–13:30","comida","Almuerzo"],
+  ["13:30–14:00","traslado","A la U"],
+  ["14:00–17:10","clase","Lab. Bioquímica ×2"],
+  ["17:10–17:40","traslado","Al depa"],
+  ["18:00–19:30","fisio","Fisiología",90],
+  ["19:30–20:15","comida","Once / cena"],
+  ["20:30–21:15","anato","Anatomía",45],
+  ["22:45","sueno","Dormir"]]},
+ {s:"J",name:"Jueves",b:[
+  ["06:45","rutina","Despertar"],
+  ["07:30–08:00","traslado","A la U"],
+  ["08:00–12:50","clase","Anatomía · Bioquímica ×2"],
+  ["12:50–14:00","comida","Almuerzo"],
+  ["14:00–14:45","bioq","Bioquímica",45,"en la U"],
+  ["14:45–15:30","anato","Anatomía",45,"en la U"],
+  ["15:40–18:50","clase","Lab. Anatomía · Fisiología"],
+  ["18:50–19:20","traslado","Al depa"],
+  ["19:30–20:15","comida","Once / cena"],
+  ["20:30–21:15","fisio","Fisiología",45],
+  ["23:00","sueno","Dormir"]]},
+ {s:"V",name:"Viernes",b:[
+  ["07:00","rutina","Despertar"],
+  ["08:00–09:30","bioq","Bioquímica",90],
+  ["09:45–11:15","fisio","Fisiología",90],
+  ["11:20–17:10","clase","Lab. Fisiología","","rotativo, un bloque"],
+  ["12:50–14:00","comida","Almuerzo"],
+  ["14:00–15:30","anato","Anatomía",90],
+  ["15:45–17:15","anato","Anatomía",90],
+  ["17:30–18:30","bioq","Bioquímica",60],
+  ["18:30","libre","Libre"],
+  ["20:00","comida","Once / cena"],
+  ["01:00","sueno","Dormir"]]},
+ {s:"S",name:"Sábado",b:[
+  ["09:00","rutina","Despertar"],
+  ["10:00–11:30","bioq","Bioquímica",90],
+  ["11:45–13:15","fisio","Fisiología",90],
+  ["13:15–14:30","comida","Almuerzo"],
+  ["14:30–16:00","bioq","Bioquímica",90],
+  ["16:15–17:45","anato","Anatomía",90],
+  ["18:00–19:30","fisio","Fisiología",90],
+  ["19:30","libre","Libre"],
+  ["20:00","comida","Once / cena"],
+  ["01:00","sueno","Dormir"]]},
+ {s:"D",name:"Domingo",b:[
+  ["09:00","rutina","Despertar"],
+  ["10:00–11:30","bioq","Bioquímica",90],
+  ["11:45–12:45","anato","Anatomía",60],
+  ["13:00–14:00","comida","Almuerzo"],
+  ["14:00–15:30","comida","Cocinar la semana"],
+  ["16:00–17:30","fisio","Fisiología",90],
+  ["17:45–19:15","bioq","Bioquímica",90],
+  ["19:15","libre","Libre"],
+  ["20:00","comida","Once / cena"],
+  ["22:45","sueno","Dormir"]]}
+];
+const SUBJ={bioq:"Bioquímica",fisio:"Fisiología",anato:"Anatomía"};
+const isStudy=t=>t in SUBJ;
+const GRACE=10000;
+const PLAN_MIN=PLAN.reduce((a,d)=>a+d.b.reduce((x,r)=>x+(isStudy(r[1])?r[3]:0),0),0);
+const PLAN_BLOCKS=PLAN.reduce((a,d)=>a+d.b.filter(r=>isStudy(r[1])).length,0);
+const CHEERS=["Floreció","Otro tulipán para tu jardín","Así se hace, Lara","Tu jardín crece","Bien ahí, Lara"];
+
+/* ---------- utilidades ---------- */
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const toMin=s=>{const [h,m]=s.split(":").map(Number);return h*60+m;};
+const span=t=>{const p=t.split("–");return {a:toMin(p[0]),b:p[1]?toMin(p[1]):null};};
+const dayIdx=(d=new Date())=>(d.getDay()+6)%7;
+const dateKey=(d=new Date())=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const weekStart=(d=new Date())=>{const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-dayIdx(x));return x;};
+const fmtH=m=>{const h=Math.floor(m/60),r=Math.round(m%60);return h?(r?`${h} h ${r}`:`${h} h`):`${r} min`;};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function tulip(cls="",style=""){
+  return `<svg class="tul ${cls}" style="${style}" viewBox="0 0 40 80" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+  <g class="stem"><path d="M20 79C20 64 21 50 20 34" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+  <g class="leaves"><path d="M20 76C11 70 7 60 9 49c5 8 9 15 11 21z"/><path d="M20 72c7-5 11-13 10-21-4 6-8 11-10 15z"/></g>
+  <g class="bloom"><path class="cup" d="M11 16l4 6 5-11 5 11 4-6c1 13-3 20-9 20s-10-7-9-20z"/><path class="open" d="M11 16l4 6 5-11 5 11 4-6c1 13-3 20-9 20s-10-7-9-20z" fill="none"/><path class="hi" d="M15 22l5-11 5 11c-1 8-3 12-5 12s-4-4-5-12z"/></g></svg>`;
+}
+
+/* ---------- datos ---------- */
+const KEY="lara-jardin-v1", AKEY="lara-jardin-activo";
+let S={flowers:[]};
+try{const raw=localStorage.getItem(KEY);if(raw){const j=JSON.parse(raw);if(Array.isArray(j.flowers))S.flowers=j.flowers;}}catch(e){}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify({flowers:S.flowers}));}catch(e){}}
+function merge(list){
+  if(!Array.isArray(list))return false;
+  const have=new Set(S.flowers.map(f=>f.id));let ch=false;
+  for(const f of list){if(f&&f.id&&!have.has(f.id)){S.flowers.push({...f});have.add(f.id);ch=true;}}
+  if(ch){S.flowers.sort((a,b)=>a.t-b.t);saveLocal();}
+  return ch;
+}
+let ref=null, writing=Promise.resolve();
+function pushRemote(){
+  if(!ref)return;
+  const body={flowers:S.flowers.map(f=>({...f}))};
+  writing=writing.then(()=>ref.set(body)).catch(e=>{if(e&&(e.code==="invalid_argument"||e.code==="not_granted"||e.code==="revoked"))ref=null;});
+}
+(async()=>{
+  try{
+    if(!window.claude||!window.claude.use)return;
+    const [db,user]=await Promise.all([claude.use("db"),claude.use("user")]);
+    if(!db||!user)return;
+    const uid=await user.id(); if(!uid)return;
+    const r=db.doc("data/users/"+uid+"/garden");
+    const snap=await r.get();
+    const remote=snap.exists?(snap.data().flowers||[]):[];
+    const remoteIds=new Set(remote.map(f=>f.id));
+    if(merge(remote))render();
+    ref=r;
+    if(S.flowers.some(f=>!remoteIds.has(f.id)))pushRemote();
+    r.onSnapshot(s=>{if(s.exists&&merge(s.data().flowers))render();},()=>{});
+  }catch(e){}
+})();
+function addFlower(f){S.flowers.push(f);saveLocal();pushRemote();}
+
+/* ---------- vistas ---------- */
+let view="hoy", selDay=dayIdx();
+function setView(v){
+  view=v;
+  for(const x of ["hoy","jardin","semana"]){$("v-"+x).hidden=x!==v;$("nav-"+x).setAttribute("aria-current",x===v);}
+  render(); window.scrollTo(0,0);
+}
+document.querySelectorAll("nav.bar button").forEach(b=>b.onclick=()=>setView(b.dataset.v));
+
+function todayFlowers(){const k=dateKey();return S.flowers.filter(f=>f.d===k);}
+function weekFlowers(){const w=weekStart().getTime();return S.flowers.filter(f=>f.t>=w);}
+function blockState(di,ri){
+  if(di!==dayIdx())return null;
+  const fs=todayFlowers().filter(f=>f.k===`${di}-${ri}`);
+  if(fs.some(f=>!f.w))return "ok";
+  if(fs.length)return "wilt";
+  return null;
+}
+function streak(){
+  const days=new Set(S.flowers.filter(f=>!f.w).map(f=>f.d));
+  let n=0;const d=new Date();
+  if(!days.has(dateKey(d)))d.setDate(d.getDate()-1);
+  while(days.has(dateKey(d))){n++;d.setDate(d.getDate()-1);}
+  return n;
+}
+
+let freeS="bioq", freeM=45;
+function renderHoy(){
+  const di=dayIdx(), day=PLAN[di], now=new Date(), nm=now.getHours()*60+now.getMinutes();
+  const rows=day.b.map((r,i)=>({r,i})).filter(x=>isStudy(x.r[1]));
+  const done=rows.filter(x=>blockState(di,x.i)==="ok").length;
+  let cur=rows.find(x=>{const s=span(x.r[0]);return nm>=s.a&&nm<s.b&&!blockState(di,x.i);});
+  let label="Ahora";
+  if(!cur){cur=rows.find(x=>span(x.r[0]).a>nm&&!blockState(di,x.i));if(cur){const d=span(cur.r[0]).a-nm;label=`En ${fmtH(d)}`;}}
+  if(!cur){cur=rows.find(x=>!blockState(di,x.i));if(cur)label="Pendiente";}
+  const hero=cur?`<div class="card now k-${cur.r[1]}">${tulip("bulb")}
+    <div><div class="when">${label} · ${cur.r[0]}</div><div class="what">${SUBJ[cur.r[1]]}</div>
+    <button class="plant" id="hero-go" data-k="${di}-${cur.i}" data-s="${cur.r[1]}" data-m="${cur.r[3]}">Plantar · ${cur.r[3]} min</button></div></div>`
+   :`<div class="card now">${tulip("","--c:var(--bioq)")}<div><div class="when">Hoy</div><div class="what">Jardín del día completo</div></div></div>`;
+  $("v-hoy").innerHTML=`
+   <div class="hello"><div><div class="muted">${day.name}</div><h1>Hola, Lara</h1></div>
+     <div class="count"><b class="num">${done}/${rows.length}</b><span class="muted">tulipanes hoy</span></div></div>
+   ${hero}
+   <ul class="today">${rows.map(x=>{const st=blockState(di,x.i);const k=x.r[1];
+     return `<li class="k-${k}">${tulip(st==="ok"?"":st==="wilt"?"wilted":"bulb")}
+      <div><div class="n">${SUBJ[k]}</div><div class="t num">${x.r[0]}${x.r[4]?" · "+esc(x.r[4]):""}</div></div>
+      ${st==="ok"?`<span class="state">Floreció</span>`:`<button class="mini go" data-k="${di}-${x.i}" data-s="${k}" data-m="${x.r[3]}">${x.r[3]} min</button>`}</li>`;}).join("")}</ul>
+   <div class="card free"><h2>Plantar extra</h2>
+     <div class="chips" id="fs">${Object.keys(SUBJ).map(k=>`<button class="chip k-${k}" data-s="${k}" aria-pressed="${k===freeS}">${SUBJ[k]}</button>`).join("")}</div>
+     <div class="chips" id="fm">${[25,45,60,90].map(m=>`<button class="chip min" data-m="${m}" aria-pressed="${m===freeM}">${m} min</button>`).join("")}</div>
+     <div><button class="plant" id="free-go">Plantar</button></div></div>`;
+  $("v-hoy").querySelectorAll(".go,#hero-go").forEach(b=>b.onclick=()=>start(b.dataset.s,+b.dataset.m,b.dataset.k));
+  $("fs").querySelectorAll("button").forEach(b=>b.onclick=()=>{freeS=b.dataset.s;renderHoy();});
+  $("fm").querySelectorAll("button").forEach(b=>b.onclick=()=>{freeM=+b.dataset.m;renderHoy();});
+  $("free-go").onclick=()=>start(freeS,freeM,"libre");
+}
+
+function renderJardin(){
+  const wf=weekFlowers(), ok=wf.filter(f=>!f.w), mins=ok.reduce((a,f)=>a+f.m,0);
+  const bySub=k=>ok.filter(f=>f.s===k);
+  const planBy=k=>PLAN.reduce((a,d)=>a+d.b.reduce((x,r)=>x+(r[1]===k?r[3]:0),0),0);
+  const bed=wf.length?wf.map(f=>tulip(f.w?"wilted":"",`--c:var(--${f.s});height:${Math.round(44+Math.min(f.m,90)/90*36)}px`).replace('class="tul','class="tul k-'+f.s)).join("")
+    :`<div class="empty">${tulip("bulb")}<span class="muted">Tu primer tulipán de la semana</span></div>`;
+  // semanas anteriores
+  const weeks={};const w0=weekStart().getTime();
+  S.flowers.filter(f=>!f.w&&f.t<w0).forEach(f=>{const k=dateKey(weekStart(new Date(f.t)));weeks[k]=(weeks[k]||0)+1;});
+  const wk=Object.keys(weeks).sort().reverse().slice(0,8);
+  $("v-jardin").innerHTML=`
+   <div class="hello"><div><div class="muted">Esta semana</div><h1>Tu jardín</h1></div>
+    <div class="count"><b class="num">${ok.length}</b><span class="muted">de ${PLAN_BLOCKS}</span></div></div>
+   <div class="field"><div class="bed">${bed}</div><div class="ground"></div></div>
+   <div class="stats">
+    <div class="stat"><b class="num">${fmtH(mins)}</b><span>de ${fmtH(PLAN_MIN)}</span></div>
+    <div class="stat"><b class="num">${streak()}</b><span>días seguidos</span></div>
+    <div class="stat"><b class="num">${S.flowers.filter(f=>!f.w).length}</b><span>en total</span></div></div>
+   <div class="card subj">${Object.keys(SUBJ).map(k=>{const m=bySub(k).reduce((a,f)=>a+f.m,0),p=planBy(k);
+     return `<div class="row k-${k}">${tulip("",`--c:var(--${k})`)}<div><div style="display:flex;justify-content:space-between;gap:8px"><b>${SUBJ[k]}</b><span class="muted num">${fmtH(m)} / ${fmtH(p)}</span></div>
+     <div class="meter"><i style="width:${Math.min(100,m/p*100)}%;background:var(--${k})"></i></div></div><span></span></div>`;}).join("")}</div>
+   ${wk.length?`<div class="card"><h2 style="margin-bottom:6px">Semanas anteriores</h2><div class="hist">${wk.map(k=>`<div><span>Semana del ${k.slice(8)}/${k.slice(5,7)}</span><b class="num">${weeks[k]} tulipanes</b></div>`).join("")}</div></div>`:""}`;
+}
+
+function renderSemana(){
+  const d=PLAN[selDay], di=dayIdx();
+  const tot=k=>d.b.reduce((a,r)=>a+(r[1]===k?r[3]:0),0);
+  $("v-semana").innerHTML=`
+   <h1>Semana</h1>
+   <div class="days" role="tablist">${PLAN.map((x,i)=>`<button role="tab" data-i="${i}" aria-selected="${i===selDay}" aria-label="${x.name}">${x.s}</button>`).join("")}</div>
+   <div class="hello" style="align-items:baseline"><h2>${d.name}${selDay===di?" · hoy":""}</h2></div>
+   <div class="weektot">${Object.keys(SUBJ).filter(k=>tot(k)).map(k=>`<span class="k-${k} num">${fmtH(tot(k))}</span>`).join("")}</div>
+   <ul class="sched">${d.b.map((r,i)=>{const st=isStudy(r[1]);const bs=st?blockState(selDay,i):null;
+     return `<li class="${st?"study k-"+r[1]:r[1]}"><span class="t num">${r[0]}</span><span class="n">${esc(r[2])}${r[4]?`<span class="tag">${esc(r[4])}</span>`:""}</span>
+     <span class="m num">${st?(bs==="ok"?"Floreció":r[3]+" min"):""}</span></li>`;}).join("")}</ul>`;
+  $("v-semana").querySelectorAll(".days button").forEach(b=>b.onclick=()=>{selDay=+b.dataset.i;renderSemana();});
+}
+function render(){if(view==="hoy")renderHoy();else if(view==="jardin")renderJardin();else renderSemana();}
+
+/* ---------- temporizador ---------- */
+let appHidden=false;const isHidden=()=>document.hidden||appHidden;
+function native(fn,v){try{if(window.Android&&Android[fn])Android[fn](v);}catch(e){}}
+let A=null, tickT=null, hiddenAt=null, lock=null, armT=null;
+function saveActive(){try{A?localStorage.setItem(AKEY,JSON.stringify(A)):localStorage.removeItem(AKEY);}catch(e){}}
+async function wake(){try{if(navigator.wakeLock&&!lock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>{lock=null;});}}catch(e){}}
+function unwake(){try{lock&&lock.release();}catch(e){}lock=null;}
+
+function start(s,m,k){
+  A={s,m,k,start:Date.now(),seen:Date.now()};saveActive();openTimer();
+}
+function openTimer(){
+  const t=$("timer");t.hidden=false;t.className="k-"+A.s;
+  t.innerHTML=`<div class="tbox"><div class="tsubj">${SUBJ[A.s]}</div>
+   ${tulip("big").replace('class="tul big','class="tul big" id="bigT')}
+   <div class="clock" id="clock">--:--</div>
+   <div class="rule">Si sales de la app, se marchita</div>
+   <button class="giveup" id="giveup">Rendirse</button></div>`;
+  $("giveup").onclick=()=>{const b=$("giveup");
+    if(b.classList.contains("arm")){finish(false);return;}
+    b.classList.add("arm");b.textContent="Toca otra vez para rendirte";clearTimeout(armT);
+    armT=setTimeout(()=>{if($("giveup")){b.classList.remove("arm");b.textContent="Rendirse";}},3000);};
+  wake();native("focus",true);clearInterval(tickT);tickT=setInterval(tick,250);tick();
+}
+function tick(){
+  if(!A||isHidden())return;
+  const now=Date.now(),dur=A.m*60000,el=now-A.start,p=Math.min(el/dur,1);
+  if(now-A.seen>1500){A.seen=now;saveActive();}
+  const left=Math.max(0,Math.ceil((dur-el)/1000));
+  const c=$("clock");if(c)c.textContent=`${Math.floor(left/60)}:${pad(left%60)}`;
+  const t=$("bigT");
+  if(t){const cl=(x,a,b)=>Math.max(0,Math.min(1,(x-a)/(b-a)));
+    t.style.setProperty("--g",(.08+.92*cl(p,0,.45)).toFixed(3));
+    t.style.setProperty("--l",cl(p,.2,.55).toFixed(3));
+    t.style.setProperty("--b",(.15+.85*cl(p,.4,.8)).toFixed(3));
+    t.style.setProperty("--o",cl(p,.75,1).toFixed(3));}
+  if(p>=1)finish(true);
+}
+function finish(ok){
+  if(!A)return;
+  clearInterval(tickT);unwake();native("focus",false);
+  const now=Date.now(),a=A;A=null;saveActive();
+  const mins=ok?a.m:Math.floor((Math.min(now,a.start+a.m*60000)-a.start)/60000);
+  addFlower({id:now.toString(36)+Math.random().toString(36).slice(2,6),t:a.start,d:dateKey(new Date(a.start)),s:a.s,m:mins,w:!ok,k:a.k});
+  const t=$("timer");t.hidden=false;t.className="k-"+a.s;
+  const weekOk=weekFlowers().filter(f=>!f.w).length;
+  t.innerHTML=`<div class="tbox" style="position:relative">
+    <div class="pop">${tulip(ok?"big":"big wilted",ok?"--g:1;--l:1;--b:1;--o:1":"--g:1;--l:1;--b:1").replace('<svg','<svg id="endT"')}</div>
+    <div class="cheer">${ok?CHEERS[Math.floor(Math.random()*CHEERS.length)]:"Se marchitó"}</div>
+    <div class="muted num">${ok?`${weekOk} tulipanes esta semana`:"El próximo florece"}</div>
+    <button class="plant" id="toGarden">Ver mi jardín</button></div>`;
+  if(ok){try{navigator.vibrate&&navigator.vibrate([80,60,120]);}catch(e){}burst(t.querySelector(".tbox"));}
+  $("toGarden").onclick=()=>{t.hidden=true;t.innerHTML="";setView("jardin");};
+  render();
+}
+function burst(box){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  for(let i=0;i<14;i++){const e=document.createElement("div");e.className="burst";
+    const ang=Math.random()*Math.PI*2,r=90+Math.random()*90;
+    e.innerHTML=`<svg class="petal" style="--x:${Math.cos(ang)*r}px;--y:${Math.sin(ang)*r}px" width="12" height="16" viewBox="0 0 12 16"><path d="M6 0C11 4 11 12 6 16 1 12 1 4 6 0z" fill="var(--c)"/></svg>`;
+    e.style.left="50%";e.style.top="30%";box.appendChild(e);setTimeout(()=>e.remove(),1500);}
+}
+function onHide(){if(!A||hiddenAt)return;hiddenAt=Date.now();A.seen=hiddenAt;saveActive();}
+function onShow(){
+  if(!A){hiddenAt=null;return;}
+  {const away=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=null;
+    if(Date.now()>=A.start+A.m*60000&&A.seen>=A.start+A.m*60000-1000)finish(true);
+    else if(away>GRACE)finish(false);
+    else{wake();tick();}}
+}
+document.addEventListener("visibilitychange",()=>{document.hidden?onHide():(appHidden||onShow());});
+window.__appHidden=()=>{appHidden=true;onHide();};
+window.__appVisible=()=>{appHidden=false;if(!document.hidden)onShow();};
+// sesión que quedó abierta
+try{const raw=localStorage.getItem(AKEY);if(raw){A=JSON.parse(raw);
+  const now=Date.now(),end=A.start+A.m*60000;
+  if(A.seen>=end-1000)finish(true);
+  else if(now-A.seen>GRACE)finish(false);
+  else openTimer();}}catch(e){A=null;}
+
+render();
+setInterval(()=>{if(!A&&view==="hoy")renderHoy();},60000);
+</script>
+</body></html>
